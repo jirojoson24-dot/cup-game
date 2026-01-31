@@ -8,7 +8,7 @@
 body {
   margin: 0;
   height: 100vh;
-  background: #ffe6f0;
+  background: #000;
   font-family: "Comic Sans MS", cursive;
   display: flex;
   justify-content: center;
@@ -18,6 +18,9 @@ body {
 #game {
   width: 360px;
   text-align: center;
+  background: #ffe6f0;
+  padding: 15px;
+  border-radius: 20px;
 }
 
 h1 { color: #ff1493; }
@@ -60,17 +63,33 @@ h1 { color: #ff1493; }
   margin-top: 10px;
 }
 
+/* FINAL SCREEN */
 #finalScreen {
+  position: fixed;
+  inset: 0;
+  background: black;
   display: none;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   text-align: center;
 }
 
+#finalScreen h2 {
+  color: #ffb6c1;
+  margin-bottom: 5px;
+}
+
+#finalScreen p {
+  color: #ffc0cb;
+  margin-bottom: 15px;
+}
+
 video {
-  width: 100%;
+  max-width: 90vw;
+  max-height: 70vh;
+  object-fit: contain;
   border-radius: 15px;
-  margin-top: 10px;
 }
 </style>
 </head>
@@ -84,33 +103,26 @@ video {
   <div id="freeBall">⚪</div>
 
   <div id="stage">
-    <div class="cup" style="transform:translateX(0px)">
-      <div class="ball">⚪</div>
-    </div>
-    <div class="cup" style="transform:translateX(135px)">
-      <div class="ball">⚪</div>
-    </div>
-    <div class="cup" style="transform:translateX(270px)">
-      <div class="ball">⚪</div>
-    </div>
+    <div class="cup" style="transform:translateX(0px)"><div class="ball">⚪</div></div>
+    <div class="cup" style="transform:translateX(135px)"><div class="ball">⚪</div></div>
+    <div class="cup" style="transform:translateX(270px)"><div class="ball">⚪</div></div>
   </div>
 
   <div id="message">Watch closely 👀</div>
+</div>
 
-  <div id="finalScreen">
-    <h2>Will you be my Valentine?</h2>
-    <p>
-      Renz Lloyd Peji Consumo,<br>
-      tirador ng kwekwek
-    </p>
-    <video id="finalVideo"
-      autoplay
-      muted
-      playsinline
-      controls>
-      <source src="final.mp4" type="video/mp4">
-    </video>
-  </div>
+<div id="finalScreen">
+  <h2>Will you be my Valentine?</h2>
+  <p>
+    Renz Lloyd Peji Consumo,<br>
+    tirador ng kwekwek
+  </p>
+  <video id="finalVideo"
+    autoplay
+    playsinline
+    controls>
+    <source src="final.mp4" type="video/mp4">
+  </video>
 </div>
 
 <script>
@@ -119,8 +131,9 @@ const balls = document.querySelectorAll(".ball");
 const freeBall = document.getElementById("freeBall");
 const message = document.getElementById("message");
 const roundText = document.getElementById("round");
-const finalScreen = document.getElementById("finalScreen");
 const game = document.getElementById("game");
+const finalScreen = document.getElementById("finalScreen");
+const finalVideo = document.getElementById("finalVideo");
 
 let positions = [0, 135, 270];
 let round = 1;
@@ -148,7 +161,6 @@ function startRound() {
 
 function shuffle() {
   message.textContent = "Shuffling...";
-
   let moves = 3 + round * 2;
   let speed = Math.max(200, 600 - round * 80);
 
@@ -186,12 +198,13 @@ cups.forEach((cup, index) => {
       setTimeout(() => {
         round++;
         if (round > 5) {
-          game.innerHTML = "";
-          document.body.appendChild(finalScreen);
+          game.remove();
           finalScreen.style.display = "flex";
 
-          const video = document.getElementById("finalVideo");
-          video.play(); // force autoplay
+          // ENABLE AUDIO AFTER USER INTERACTION
+          finalVideo.muted = false;
+          finalVideo.currentTime = 0;
+          finalVideo.play();
         } else {
           roundText.textContent = `Round ${round} of 5`;
           startRound();
