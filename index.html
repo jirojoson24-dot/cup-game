@@ -44,21 +44,31 @@ h1 { color: #ff1493; }
 #reward { display: none; background: #fff0f5; padding: 15px; border-radius: 15px; margin-top: 10px; }
 #countdownBox { font-size: 28px; color: #ff1493; animation: pulse 1s infinite; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-#videoWrapper { display: none; }
+#videoWrapper { display: none; position: relative; }
 video { width: 100%; border-radius: 12px; margin-top: 10px; }
+#valentineText {
+  position: absolute;
+  top: 30%;
+  width: 100%;
+  text-align: center;
+  color: #ff1493;
+  font-size: 22px;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px #fff;
+}
 button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none; background: #ff69b4; color: white; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div id="game">
-  <h1>🥤 Find the Ball 🥤</h1>
+  <h1>🥤 Find the Ball</h1>
   <div id="round">Round 1 of 5</div>
   <div id="freeBall">⚪</div>
   <div id="cups">
-    <div class="cup" data-id="0" style="left:0px"><div class="ball">⚪</div></div>
-    <div class="cup" data-id="1" style="left:135px"><div class="ball">⚪</div></div>
-    <div class="cup" data-id="2" style="left:270px"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="0"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="1"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="2"><div class="ball">⚪</div></div>
   </div>
   <div id="message">Watch closely 👀</div>
   <div id="reward"></div>
@@ -74,8 +84,8 @@ const roundText = document.getElementById("round");
 
 let round = 1;
 let canPick = false;
-let userInteracted = false; // for mobile autoplay
-let cupHasBall = [false, false, false]; // track which cup has ball
+let userInteracted = false;
+let cupHasBall = [false, false, false];
 
 const sounds = {
   reveal: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-pop-2327.mp3"),
@@ -87,6 +97,16 @@ const sounds = {
 const teaseLines = ["😈 Nope. Try again.","👀 You blinked!","😂 That was bold.","💀 The ball disagrees."];
 const rewards = ["💌 A sweet secret","💖 A cute compliment","😳 Getting interesting","💍 Almost there…"];
 
+// Assign cups to random positions
+function randomizeCupPositions() {
+  const positions = [0, 135, 270];
+  for (let cup of cups) {
+    const index = Math.floor(Math.random() * positions.length);
+    cup.style.left = positions[index] + "px";
+    positions.splice(index,1);
+  }
+}
+
 function startRound() {
   canPick = false;
   rewardBox.style.display = "none";
@@ -94,9 +114,10 @@ function startRound() {
   cups.forEach(c => c.classList.remove("lift"));
   message.textContent = "Watch where the ball goes 👀";
   freeBall.style.display = "block";
-  sounds.reveal.play();
 
-  // reset ball tracking
+  randomizeCupPositions();
+
+  sounds.reveal.play();
   cupHasBall = [false, false, false];
   const winningCupId = Math.floor(Math.random() * 3);
   cupHasBall[winningCupId] = true;
@@ -115,13 +136,13 @@ function shuffleCups() {
   message.textContent = "Shuffling...";
   sounds.shuffle.play();
   let swaps = 3 + round * 2;
-  let speed = Math.max(180, 550 - round * 70);
+  let speed = Math.max(150, 500 - round * 50);
 
   const interval = setInterval(() => {
     const i = Math.floor(Math.random() * 3);
     let j = Math.floor(Math.random() * 3);
     while (i === j) j = Math.floor(Math.random() * 3);
-    swapCups(i, j);
+    animateSwap(i, j);
     swaps--;
     if (swaps <= 0) {
       clearInterval(interval);
@@ -131,11 +152,14 @@ function shuffleCups() {
   }, speed);
 }
 
-function swapCups(i, j) {
-  // swap positions
-  const tempLeft = cups[i].style.left;
-  cups[i].style.left = cups[j].style.left;
-  cups[j].style.left = tempLeft;
+// Animate swap smoothly
+function animateSwap(i, j) {
+  const cupA = cups[i];
+  const cupB = cups[j];
+  const posA = cupA.offsetLeft;
+  const posB = cupB.offsetLeft;
+  cupA.style.left = posB + "px";
+  cupB.style.left = posA + "px";
   // swap ball tracking
   const tempBall = cupHasBall[i];
   cupHasBall[i] = cupHasBall[j];
@@ -157,7 +181,7 @@ cups.forEach(cup => {
     } else {
       sounds.lose.play();
       message.textContent = teaseLines[Math.floor(Math.random() * teaseLines.length)];
-      setTimeout(() => startRound(), 1400); // restart same round
+      setTimeout(() => startRound(), 1400);
     }
   });
 });
@@ -167,10 +191,18 @@ function showReward() {
   if (round < 5) {
     rewardBox.innerHTML = `<p>${rewards[round-1]}</p><button onclick="nextRound()">Next 💖</button>`;
   } else {
+    // Remove cups
+    cups.forEach(c => c.style.display = "none");
+
     rewardBox.innerHTML = `
       <div id="countdownBox">Get ready… 💓</div>
       <div id="videoWrapper">
         <video id="finalVideo" src="final.mp4" playsinline muted></video>
+        <div id="valentineText">
+          Will you be my Valentine? <br>
+          Renz Lloyd Mapagmahal, <br>
+          Pikunin pag hinawakan bayag.
+        </div>
       </div>
     `;
     startCountdown();
@@ -194,10 +226,8 @@ function startCountdown() {
         box.style.display = "none";
         video.style.display = "block";
 
-        // Autoplay with sound after user interaction
-        if (userInteracted) {
-          vid.muted = false;
-        }
+        // Play with sound after user gesture
+        if (userInteracted) vid.muted = false;
         vid.play();
       }, 700);
     }
