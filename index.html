@@ -12,10 +12,17 @@ html, body {
   font-family: "Comic Sans MS", cursive;
 }
 
-/* GAME CONTAINER */
+/* CENTER PAGE */
+#page {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* GAME CARD */
 #game {
   width: 360px;
-  margin: auto;
   background: #ffe6f0;
   padding: 15px;
   border-radius: 20px;
@@ -62,27 +69,27 @@ h1 { color: #ff1493; }
   margin-top: 10px;
 }
 
-/* FINAL VIDEO OVERLAY */
+/* FINAL SCREEN */
 #finalScreen {
   position: fixed;
   inset: 0;
-  background: transparent; /* 🔑 KEEP PINK BG */
   display: none;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   text-align: center;
+  background: transparent; /* keep pink */
   padding: 10px;
 }
 
 #finalScreen h2 {
   color: #ff1493;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 #finalScreen p {
   color: #c2185b;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 video {
@@ -97,25 +104,27 @@ video {
 
 <body>
 
-<div id="game">
-  <h1>🥤 Find the Ball 🥤</h1>
-  <div id="round">Round 1 of 5</div>
+<div id="page">
+  <div id="game">
+    <h1>🥤 Find the Ball 🥤</h1>
+    <div id="round">Round 1 of 5</div>
 
-  <div id="freeBall">⚪</div>
+    <div id="freeBall">⚪</div>
 
-  <div id="stage">
-    <div class="cup" style="transform:translateX(0px)">
-      <div class="ball">⚪</div>
+    <div id="stage">
+      <div class="cup" style="transform:translateX(0px)">
+        <div class="ball">⚪</div>
+      </div>
+      <div class="cup" style="transform:translateX(135px)">
+        <div class="ball">⚪</div>
+      </div>
+      <div class="cup" style="transform:translateX(270px)">
+        <div class="ball">⚪</div>
+      </div>
     </div>
-    <div class="cup" style="transform:translateX(135px)">
-      <div class="ball">⚪</div>
-    </div>
-    <div class="cup" style="transform:translateX(270px)">
-      <div class="ball">⚪</div>
-    </div>
+
+    <div id="message">Watch closely 👀</div>
   </div>
-
-  <div id="message">Watch closely 👀</div>
 </div>
 
 <div id="finalScreen">
@@ -136,6 +145,7 @@ const freeBall = document.getElementById("freeBall");
 const message = document.getElementById("message");
 const roundText = document.getElementById("round");
 const game = document.getElementById("game");
+const page = document.getElementById("page");
 const finalScreen = document.getElementById("finalScreen");
 const finalVideo = document.getElementById("finalVideo");
 
@@ -206,6 +216,7 @@ cups.forEach((cup, index) => {
       setTimeout(() => {
         round++;
         if (round > 5) {
+          page.remove();              // 🔥 REMOVE GAME COMPLETELY
           finalScreen.style.display = "flex";
           finalVideo.muted = false;
           finalVideo.play();
