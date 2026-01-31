@@ -2,114 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🥤 Find the Ball</title>
+<title>Valentine Surprise</title>
 
 <style>
-body {
+html, body {
   margin: 0;
-  height: 100vh;
-  background: #000;
-  font-family: "Comic Sans MS", cursive;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 100%;
+  background: black;
 }
 
-#game {
-  width: 360px;
-  text-align: center;
-  background: #ffe6f0;
-  padding: 15px;
-  border-radius: 20px;
-}
-
-h1 { color: #ff1493; }
-#round { color: #c2185b; }
-
-#stage {
-  position: relative;
-  height: 180px;
-  margin-top: 20px;
-}
-
-.cup {
-  width: 90px;
-  height: 120px;
-  background: #ff69b4;
-  border-radius: 0 0 30px 30px;
-  position: absolute;
-  bottom: 0;
-  cursor: pointer;
-  transition: transform 0.45s ease;
-}
-
-.ball {
-  position: absolute;
-  bottom: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 26px;
-  display: none;
-}
-
-#freeBall {
-  font-size: 30px;
-  display: none;
-}
-
-#message {
-  min-height: 40px;
-  color: #ad1457;
-  margin-top: 10px;
-}
-
-/* FINAL SCREEN */
 #finalScreen {
   position: fixed;
   inset: 0;
-  background: black;
   display: none;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
   text-align: center;
 }
 
 #finalScreen h2 {
   color: #ffb6c1;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 #finalScreen p {
   color: #ffc0cb;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 video {
-  max-width: 90vw;
-  max-height: 70vh;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  border-radius: 15px;
 }
 </style>
 </head>
 
 <body>
-
-<div id="game">
-  <h1>🥤 Find the Ball 🥤</h1>
-  <div id="round">Round 1 of 5</div>
-
-  <div id="freeBall">⚪</div>
-
-  <div id="stage">
-    <div class="cup" style="transform:translateX(0px)"><div class="ball">⚪</div></div>
-    <div class="cup" style="transform:translateX(135px)"><div class="ball">⚪</div></div>
-    <div class="cup" style="transform:translateX(270px)"><div class="ball">⚪</div></div>
-  </div>
-
-  <div id="message">Watch closely 👀</div>
-</div>
 
 <div id="finalScreen">
   <h2>Will you be my Valentine?</h2>
@@ -117,108 +49,30 @@ video {
     Renz Lloyd Peji Consumo,<br>
     tirador ng kwekwek
   </p>
-  <video id="finalVideo"
-    autoplay
-    playsinline
-    controls>
+  <video id="finalVideo" playsinline>
     <source src="final.mp4" type="video/mp4">
   </video>
 </div>
 
 <script>
-const cups = [...document.querySelectorAll(".cup")];
-const balls = document.querySelectorAll(".ball");
-const freeBall = document.getElementById("freeBall");
-const message = document.getElementById("message");
-const roundText = document.getElementById("round");
-const game = document.getElementById("game");
-const finalScreen = document.getElementById("finalScreen");
-const finalVideo = document.getElementById("finalVideo");
+// SIMULATE END OF GAME
+document.body.addEventListener("click", startFinal, { once: true });
 
-let positions = [0, 135, 270];
-let round = 1;
-let winningIndex = 0;
-let canPick = false;
+function startFinal() {
+  const screen = document.getElementById("finalScreen");
+  const video = document.getElementById("finalVideo");
 
-function startRound() {
-  canPick = false;
-  balls.forEach(b => b.style.display = "none");
-  message.textContent = "Look at the ball 👀";
+  screen.style.display = "flex";
 
-  freeBall.style.display = "block";
-  winningIndex = Math.floor(Math.random() * 3);
-
-  setTimeout(() => {
-    freeBall.style.display = "none";
-    cups[winningIndex].querySelector(".ball").style.display = "block";
-
-    setTimeout(() => {
-      balls.forEach(b => b.style.display = "none");
-      shuffle();
-    }, 700);
-  }, 1200);
-}
-
-function shuffle() {
-  message.textContent = "Shuffling...";
-  let moves = 3 + round * 2;
-  let speed = Math.max(200, 600 - round * 80);
-
-  let interval = setInterval(() => {
-    let i = Math.floor(Math.random() * 3);
-    let j = Math.floor(Math.random() * 3);
-    if (i === j) return;
-
-    [positions[i], positions[j]] = [positions[j], positions[i]];
-    cups[i].style.transform = `translateX(${positions[i]}px)`;
-    cups[j].style.transform = `translateX(${positions[j]}px)`;
-
-    if (winningIndex === i) winningIndex = j;
-    else if (winningIndex === j) winningIndex = i;
-
-    if (--moves === 0) {
-      clearInterval(interval);
-      message.textContent = "Pick a cup 🥤";
-      canPick = true;
-    }
-  }, speed);
-}
-
-cups.forEach((cup, index) => {
-  cup.addEventListener("click", () => {
-    if (!canPick) return;
-
-    balls.forEach(b => b.style.display = "none");
-    cups[winningIndex].querySelector(".ball").style.display = "block";
-
-    if (index === winningIndex) {
-      message.textContent = "Correct!";
-      canPick = false;
-
-      setTimeout(() => {
-        round++;
-        if (round > 5) {
-          game.remove();
-          finalScreen.style.display = "flex";
-
-          // ENABLE AUDIO AFTER USER INTERACTION
-          finalVideo.muted = false;
-          finalVideo.currentTime = 0;
-          finalVideo.play();
-        } else {
-          roundText.textContent = `Round ${round} of 5`;
-          startRound();
-        }
-      }, 1000);
-    } else {
-      message.textContent = "Wrong 😈 Try again!";
-      canPick = false;
-      setTimeout(startRound, 1200);
-    }
+  video.muted = false;
+  video.currentTime = 0;
+  video.play().catch(() => {
+    // fallback if browser delays
+    video.muted = true;
+    video.play();
+    setTimeout(() => video.muted = false, 300);
   });
-});
-
-startRound();
+}
 </script>
 
 </body>
