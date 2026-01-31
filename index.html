@@ -8,10 +8,11 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: black;
+  background: #ffe6f0;
   font-family: "Comic Sans MS", cursive;
 }
 
+/* GAME CONTAINER */
 #game {
   width: 360px;
   margin: auto;
@@ -61,31 +62,35 @@ h1 { color: #ff1493; }
   margin-top: 10px;
 }
 
-/* FINAL VIDEO */
+/* FINAL VIDEO SCREEN */
 #finalScreen {
   position: fixed;
   inset: 0;
-  background: black;
+  background: #ffe6f0;
   display: none;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   text-align: center;
+  padding: 10px;
 }
 
 #finalScreen h2 {
-  color: #ffb6c1;
+  color: #ff1493;
+  margin-bottom: 5px;
 }
 
 #finalScreen p {
-  color: #ffc0cb;
+  color: #c2185b;
   margin-bottom: 15px;
 }
 
 video {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  max-width: 90vw;
+  max-height: 70vh;
   object-fit: contain;
+  border-radius: 15px;
 }
 </style>
 </head>
@@ -99,9 +104,15 @@ video {
   <div id="freeBall">⚪</div>
 
   <div id="stage">
-    <div class="cup" style="transform:translateX(0px)"><div class="ball">⚪</div></div>
-    <div class="cup" style="transform:translateX(135px)"><div class="ball">⚪</div></div>
-    <div class="cup" style="transform:translateX(270px)"><div class="ball">⚪</div></div>
+    <div class="cup" style="transform:translateX(0px)">
+      <div class="ball">⚪</div>
+    </div>
+    <div class="cup" style="transform:translateX(135px)">
+      <div class="ball">⚪</div>
+    </div>
+    <div class="cup" style="transform:translateX(270px)">
+      <div class="ball">⚪</div>
+    </div>
   </div>
 
   <div id="message">Watch closely 👀</div>
@@ -155,8 +166,8 @@ function startRound() {
 function shuffle() {
   message.textContent = "Shuffling...";
 
-  let swaps = 6 + round * 3;          // MORE swaps per round
-  let intervalTime = Math.max(120, 350 - round * 45); // FASTER each round
+  let swaps = 6 + round * 3;
+  let intervalTime = Math.max(120, 350 - round * 45);
   let transitionTime = Math.max(0.18, 0.35 - round * 0.03);
 
   cups.forEach(c => c.style.transition = `transform ${transitionTime}s ease`);
