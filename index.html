@@ -18,7 +18,7 @@ body {
 }
 
 #game { width: 360px; text-align: center; }
-h1 { color: #ff1493; font-size: 28px; }
+h1 { color: #ff1493; font-size: 32px; margin-bottom: 5px; }
 #round { color: #c2185b; margin-top: 5px; font-size: 18px; }
 #cups { position: relative; height: 180px; margin-top: 20px; }
 .cup {
@@ -45,7 +45,7 @@ h1 { color: #ff1493; font-size: 28px; }
 .ball { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 26px; display: none; }
 #freeBall { font-size: 32px; display: none; margin-top: 5px; }
 #message { min-height: 45px; margin-top: 10px; color: #ad1457; font-size: 16px; }
-#reward { display: none; background: #fff0f5; padding: 15px; border-radius: 15px; margin-top: 10px; }
+#reward { display: none; background: #fff0f5; padding: 15px; border-radius: 15px; margin-top: 10px; font-size: 18px; }
 #countdownBox { font-size: 28px; color: #ff1493; animation: pulse 1s infinite; margin-top: 10px; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 #videoWrapper { display: none; margin-top: 15px; }
@@ -56,15 +56,8 @@ video { width: 100%; border-radius: 12px; }
   color: #ff1493;
   font-weight: bold;
   margin-bottom: 10px;
-  opacity: 0;
-  transform: translateY(-20px);
-  animation: fadeInUp 1s forwards;
+  text-align: center;
   text-shadow: 1px 1px 3px #fff;
-}
-
-/* Fade in animation for text */
-@keyframes fadeInUp {
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Floating hearts */
@@ -82,7 +75,16 @@ video { width: 100%; border-radius: 12px; }
   100% { transform: translateY(-200px) scale(1); opacity: 0; }
 }
 
-button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none; background: #ff69b4; color: white; cursor: pointer; font-size: 16px; }
+button { 
+  margin-top: 10px; 
+  padding: 8px 16px; 
+  border-radius: 20px; 
+  border: none; 
+  background: #ff69b4; 
+  color: white; 
+  cursor: pointer; 
+  font-size: 16px; 
+}
 </style>
 </head>
 <body>
@@ -122,7 +124,6 @@ const sounds = {
 
 const teaseLines = ["😈 Nope. Try again.","👀 You blinked!","😂 That was bold.","💀 The ball disagrees."];
 const rewards = ["💌 A sweet secret","💖 A cute compliment","😳 Getting interesting","💍 Almost there…"];
-
 const cupPositions = [0, 135, 270];
 
 function startRound() {
@@ -145,10 +146,12 @@ function startRound() {
   const winningCupId = Math.floor(Math.random() * 3);
   cupHasBall[winningCupId] = true;
 
-  // Show ball briefly
-  cups[winningCupId].querySelector(".ball").style.display = "block";
+  // Show ball above the cup first
+  const winningBall = cups[winningCupId].querySelector(".ball");
+  winningBall.style.display = "block";
+
   setTimeout(() => {
-    balls.forEach(b => b.style.display = "none");
+    winningBall.style.display = "none"; // hide before shuffle
     shuffleCups();
   }, 1000);
 }
@@ -194,6 +197,7 @@ cups.forEach(cup => {
     const cupId = parseInt(cup.dataset.id);
 
     if (cupHasBall[cupId]) {
+      cup.querySelector(".ball").style.display = "block"; // reveal ball
       sounds.win.play();
       message.textContent = "🎉 Correct!";
       showReward();
@@ -226,7 +230,6 @@ function showReward() {
       </div>
     `;
 
-    // Start hearts animation
     startHearts();
     startCountdown();
   }
@@ -257,7 +260,6 @@ function startCountdown() {
 
 // Floating hearts function
 function startHearts() {
-  const colors = ["#ff69b4", "#ff1493", "#ff85c1"];
   const gameDiv = document.getElementById("game");
 
   setInterval(() => {
