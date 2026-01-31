@@ -4,18 +4,21 @@
 <meta charset="UTF-8">
 <title>🥤 Find the Ball</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
+
 body {
   margin: 0;
   height: 100vh;
   background: #ffe6f0;
-  font-family: "Comic Sans MS", cursive;
+  font-family: 'Gloria Hallelujah', cursive;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 #game { width: 360px; text-align: center; }
-h1 { color: #ff1493; }
-#round { color: #c2185b; }
+h1 { color: #ff1493; font-size: 28px; }
+#round { color: #c2185b; margin-top: 5px; font-size: 18px; }
 #cups { position: relative; height: 180px; margin-top: 20px; }
 .cup {
   width: 90px;
@@ -40,19 +43,20 @@ h1 { color: #ff1493; }
 .cup.lift { transform: translateY(-25px); }
 .ball { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 26px; display: none; }
 #freeBall { font-size: 32px; display: none; margin-top: 5px; }
-#message { min-height: 45px; margin-top: 10px; color: #ad1457; }
+#message { min-height: 45px; margin-top: 10px; color: #ad1457; font-size: 16px; }
 #reward { display: none; background: #fff0f5; padding: 15px; border-radius: 15px; margin-top: 10px; }
-#countdownBox { font-size: 28px; color: #ff1493; animation: pulse 1s infinite; }
+#countdownBox { font-size: 28px; color: #ff1493; animation: pulse 1s infinite; margin-top: 10px; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-#videoWrapper { display: none; position: relative; }
-video { width: 100%; border-radius: 12px; margin-top: 10px; }
+#videoWrapper { display: none; margin-top: 15px; }
+video { width: 100%; border-radius: 12px; }
 #valentineText {
-  margin-top: 15px;
   font-size: 22px;
   color: #ff1493;
   font-weight: bold;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 3px #fff;
 }
-button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none; background: #ff69b4; color: white; cursor: pointer; }
+button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none; background: #ff69b4; color: white; cursor: pointer; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -72,169 +76,4 @@ button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none;
 
 <script>
 const cups = [...document.querySelectorAll(".cup")];
-const balls = document.querySelectorAll(".ball");
-const freeBall = document.getElementById("freeBall");
-const message = document.getElementById("message");
-const rewardBox = document.getElementById("reward");
-const roundText = document.getElementById("round");
-
-let round = 1;
-let canPick = false;
-let userInteracted = false;
-let cupHasBall = [false, false, false];
-
-const sounds = {
-  reveal: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-pop-2327.mp3"),
-  shuffle: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"),
-  win: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"),
-  lose: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-buzz-950.mp3")
-};
-
-const teaseLines = ["😈 Nope. Try again.","👀 You blinked!","😂 That was bold.","💀 The ball disagrees."];
-const rewards = ["💌 A sweet secret","💖 A cute compliment","😳 Getting interesting","💍 Almost there…"];
-
-function randomizeCupPositions() {
-  const positions = [0, 135, 270];
-  for (let cup of cups) {
-    const index = Math.floor(Math.random() * positions.length);
-    cup.style.left = positions[index] + "px";
-    positions.splice(index,1);
-  }
-}
-
-function startRound() {
-  canPick = false;
-  rewardBox.style.display = "none";
-  balls.forEach(b => b.style.display = "none");
-  cups.forEach(c => c.classList.remove("lift"));
-  message.textContent = "Watch where the ball goes 👀";
-  freeBall.style.display = "block";
-
-  // Reset cup positions in case some leftover from final round
-  cups.forEach(c => c.style.display = "block");
-  randomizeCupPositions();
-
-  sounds.reveal.play();
-  cupHasBall = [false, false, false];
-  const winningCupId = Math.floor(Math.random() * 3);
-  cupHasBall[winningCupId] = true;
-
-  setTimeout(() => {
-    freeBall.style.display = "none";
-    cups[winningCupId].querySelector(".ball").style.display = "block";
-    setTimeout(() => {
-      balls.forEach(b => b.style.display = "none");
-      shuffleCups();
-    }, 700);
-  }, 1200);
-}
-
-function shuffleCups() {
-  message.textContent = "Shuffling...";
-  sounds.shuffle.play();
-  let swaps = 3 + round * 2;
-  let speed = Math.max(150, 500 - round * 50);
-
-  const interval = setInterval(() => {
-    const i = Math.floor(Math.random() * 3);
-    let j = Math.floor(Math.random() * 3);
-    while (i === j) j = Math.floor(Math.random() * 3);
-    animateSwap(i, j);
-    swaps--;
-    if (swaps <= 0) {
-      clearInterval(interval);
-      message.textContent = "Pick a cup 🥤";
-      canPick = true;
-    }
-  }, speed);
-}
-
-function animateSwap(i, j) {
-  const cupA = cups[i];
-  const cupB = cups[j];
-  const posA = cupA.offsetLeft;
-  const posB = cupB.offsetLeft;
-  cupA.style.left = posB + "px";
-  cupB.style.left = posA + "px";
-  const tempBall = cupHasBall[i];
-  cupHasBall[i] = cupHasBall[j];
-  cupHasBall[j] = tempBall;
-}
-
-cups.forEach(cup => {
-  cup.addEventListener("click", () => {
-    if (!canPick) return;
-    canPick = false;
-    userInteracted = true;
-    cup.classList.add("lift");
-    const cupId = parseInt(cup.dataset.id);
-
-    if (cupHasBall[cupId]) {
-      sounds.win.play();
-      message.textContent = "🎉 Correct!";
-      showReward();
-    } else {
-      sounds.lose.play();
-      message.textContent = teaseLines[Math.floor(Math.random() * teaseLines.length)];
-      setTimeout(() => startRound(), 1400);
-    }
-  });
-});
-
-function showReward() {
-  rewardBox.style.display = "block";
-  if (round < 5) {
-    rewardBox.innerHTML = `<p>${rewards[round-1]}</p><button onclick="nextRound()">Next 💖</button>`;
-  } else {
-    // Remove cups for final round
-    cups.forEach(c => c.remove());
-    freeBall.style.display = "none";
-
-    // Show Valentine text above the video
-    rewardBox.innerHTML = `
-      <div id="valentineText">
-        Will you be my Valentine? <br>
-        Renz Lloyd Peji Consumo the Sabungero ng mga Sisiw
-      </div>
-      <div id="countdownBox">Get ready… 💓</div>
-      <div id="videoWrapper">
-        <video id="finalVideo" src="final.mp4" playsinline muted></video>
-      </div>
-    `;
-    startCountdown();
-  }
-}
-
-function startCountdown() {
-  let count = 3;
-  const box = document.getElementById("countdownBox");
-  const videoWrapper = document.getElementById("videoWrapper");
-  const vid = document.getElementById("finalVideo");
-  box.textContent = count;
-
-  const timer = setInterval(() => {
-    count--;
-    if (count > 0) box.textContent = count;
-    else {
-      clearInterval(timer);
-      box.textContent = "💖";
-      setTimeout(() => {
-        box.style.display = "none";
-        videoWrapper.style.display = "block";
-        if (userInteracted) vid.muted = false;
-        vid.play();
-      }, 700);
-    }
-  }, 1000);
-}
-
-function nextRound() { 
-  round++; 
-  roundText.textContent = `Round ${round} of 5`; 
-  startRound(); 
-}
-
-startRound();
-</script>
-</body>
-</html>
+const balls = document.querySelectorAll(
