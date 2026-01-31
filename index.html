@@ -14,6 +14,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 #game { width: 360px; text-align: center; }
@@ -49,13 +50,38 @@ h1 { color: #ff1493; font-size: 28px; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 #videoWrapper { display: none; margin-top: 15px; }
 video { width: 100%; border-radius: 12px; }
+
 #valentineText {
   font-size: 22px;
   color: #ff1493;
   font-weight: bold;
   margin-bottom: 10px;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: fadeInUp 1s forwards;
   text-shadow: 1px 1px 3px #fff;
 }
+
+/* Fade in animation for text */
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Floating hearts */
+.heart {
+  position: absolute;
+  font-size: 16px;
+  color: #ff69b4;
+  animation: floatUp linear forwards;
+  opacity: 0.8;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  50% { transform: translateY(-50px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-200px) scale(1); opacity: 0; }
+}
+
 button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none; background: #ff69b4; color: white; cursor: pointer; font-size: 16px; }
 </style>
 </head>
@@ -76,4 +102,183 @@ button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none;
 
 <script>
 const cups = [...document.querySelectorAll(".cup")];
-const balls = document.querySelectorAll(
+const balls = document.querySelectorAll(".ball");
+const freeBall = document.getElementById("freeBall");
+const message = document.getElementById("message");
+const rewardBox = document.getElementById("reward");
+const roundText = document.getElementById("round");
+
+let round = 1;
+let canPick = false;
+let userInteracted = false;
+let cupHasBall = [false, false, false];
+
+const sounds = {
+  reveal: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-pop-2327.mp3"),
+  shuffle: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"),
+  win: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"),
+  lose: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-buzz-950.mp3")
+};
+
+const teaseLines = ["😈 Nope. Try again.","👀 You blinked!","😂 That was bold.","💀 The ball disagrees."];
+const rewards = ["💌 A sweet secret","💖 A cute compliment","😳 Getting interesting","💍 Almost there…"];
+
+const cupPositions = [0, 135, 270];
+
+function startRound() {
+  canPick = false;
+  rewardBox.style.display = "none";
+  balls.forEach(b => b.style.display = "none");
+  cups.forEach(c => c.classList.remove("lift"));
+  message.style.display = "block";
+  message.textContent = "Watch where the ball goes 👀";
+  freeBall.style.display = "block";
+
+  // Reset cups
+  cups.forEach((c,i) => {
+    c.style.display = "block";
+    c.style.left = cupPositions[i] + "px";
+  });
+
+  sounds.reveal.play();
+  cupHasBall = [false, false, false];
+  const winningCupId = Math.floor(Math.random() * 3);
+  cupHasBall[winningCupId] = true;
+
+  // Show ball briefly
+  cups[winningCupId].querySelector(".ball").style.display = "block";
+  setTimeout(() => {
+    balls.forEach(b => b.style.display = "none");
+    shuffleCups();
+  }, 1000);
+}
+
+function shuffleCups() {
+  message.textContent = "Shuffling...";
+  sounds.shuffle.play();
+  let swaps = 3 + round * 2;
+  let speed = Math.max(150, 500 - round * 50);
+
+  const interval = setInterval(() => {
+    const i = Math.floor(Math.random() * 3);
+    let j = Math.floor(Math.random() * 3);
+    while (i === j) j = Math.floor(Math.random() * 3);
+    animateSwap(i, j);
+    swaps--;
+    if (swaps <= 0) {
+      clearInterval(interval);
+      message.textContent = "Pick a cup 🥤";
+      canPick = true;
+    }
+  }, speed);
+}
+
+function animateSwap(i, j) {
+  const cupA = cups[i];
+  const cupB = cups[j];
+  const posA = cupA.offsetLeft;
+  const posB = cupB.offsetLeft;
+  cupA.style.left = posB + "px";
+  cupB.style.left = posA + "px";
+  const temp = cupHasBall[i];
+  cupHasBall[i] = cupHasBall[j];
+  cupHasBall[j] = temp;
+}
+
+cups.forEach(cup => {
+  cup.addEventListener("click", () => {
+    if (!canPick) return;
+    canPick = false;
+    userInteracted = true;
+    cup.classList.add("lift");
+    const cupId = parseInt(cup.dataset.id);
+
+    if (cupHasBall[cupId]) {
+      sounds.win.play();
+      message.textContent = "🎉 Correct!";
+      showReward();
+    } else {
+      sounds.lose.play();
+      message.textContent = teaseLines[Math.floor(Math.random() * teaseLines.length)];
+      setTimeout(() => startRound(), 1400);
+    }
+  });
+});
+
+function showReward() {
+  rewardBox.style.display = "block";
+  if (round < 5) {
+    rewardBox.innerHTML = `<p>${rewards[round-1]}</p><button onclick="nextRound()">Next 💖</button>`;
+  } else {
+    // Remove everything before video
+    cups.forEach(c => c.remove());
+    freeBall.style.display = "none";
+    message.style.display = "none";
+
+    rewardBox.innerHTML = `
+      <div id="valentineText">
+        💖 Will you be my Valentine? <br>
+        Renz Lloyd Peji Consumo the Sabungero ng mga Sisiw
+      </div>
+      <div id="countdownBox">Get ready… 💓</div>
+      <div id="videoWrapper">
+        <video id="finalVideo" src="final.mp4" playsinline muted></video>
+      </div>
+    `;
+
+    // Start hearts animation
+    startHearts();
+    startCountdown();
+  }
+}
+
+function startCountdown() {
+  let count = 3;
+  const box = document.getElementById("countdownBox");
+  const videoWrapper = document.getElementById("videoWrapper");
+  const vid = document.getElementById("finalVideo");
+
+  box.textContent = count;
+  const timer = setInterval(() => {
+    count--;
+    if (count > 0) box.textContent = count;
+    else {
+      clearInterval(timer);
+      box.textContent = "💖";
+      setTimeout(() => {
+        box.style.display = "none";
+        videoWrapper.style.display = "block";
+        if (userInteracted) vid.muted = false;
+        vid.play();
+      }, 700);
+    }
+  }, 1000);
+}
+
+// Floating hearts function
+function startHearts() {
+  const colors = ["#ff69b4", "#ff1493", "#ff85c1"];
+  const gameDiv = document.getElementById("game");
+
+  setInterval(() => {
+    const heart = document.createElement("div");
+    heart.classList.add("heart");
+    heart.textContent = "❤️";
+    heart.style.left = Math.random() * 340 + "px";
+    heart.style.fontSize = 14 + Math.random() * 12 + "px";
+    heart.style.animationDuration = 3 + Math.random() * 2 + "s";
+    gameDiv.appendChild(heart);
+    setTimeout(() => heart.remove(), 5000);
+  }, 400);
+}
+
+function nextRound() {
+  round++;
+  roundText.textContent = `Round ${round} of 5`;
+  startRound();
+}
+
+startRound();
+</script>
+</body>
+</html>
