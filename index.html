@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>🥤 Find the Ball 🥤</title>
+<title>🥤 Find the Ball</title>
 
 <style>
   body {
@@ -20,19 +20,13 @@
     text-align: center;
   }
 
-  h1 {
-    color: #ff1493;
-  }
-
-  #round {
-    color: #c2185b;
-    margin-bottom: 10px;
-  }
+  h1 { color: #ff1493; }
+  #round { color: #c2185b; }
 
   #cups {
-    display: flex;
-    justify-content: space-between;
-    margin: 20px 0;
+    position: relative;
+    height: 170px;
+    margin-top: 20px;
   }
 
   .cup {
@@ -40,52 +34,51 @@
     height: 120px;
     background: #ff69b4;
     border-radius: 0 0 30px 30px;
+    position: absolute;
+    bottom: 0;
     cursor: pointer;
-    position: relative;
-    transition: transform 0.3s;
+    transition: left 0.4s ease, transform 0.2s ease;
   }
 
-  .cup:hover {
-    transform: translateY(-5px);
-  }
+  .cup:hover { transform: translateY(-5px); }
 
   .ball {
     position: absolute;
-    bottom: -15px;
+    bottom: -18px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 24px;
+    font-size: 26px;
+    display: none;
+  }
+
+  #freeBall {
+    font-size: 30px;
+    margin-top: 10px;
     display: none;
   }
 
   #message {
     min-height: 40px;
-    color: #ad1457;
     margin-top: 10px;
+    color: #ad1457;
   }
 
   #reward {
     display: none;
-    margin-top: 15px;
-    padding: 15px;
     background: #fff0f5;
+    padding: 12px;
     border-radius: 15px;
-    color: #c2185b;
+    margin-top: 10px;
   }
 
   button {
     margin-top: 10px;
     padding: 8px 16px;
-    border: none;
     border-radius: 20px;
+    border: none;
     background: #ff69b4;
     color: white;
-    font-size: 16px;
     cursor: pointer;
-  }
-
-  button:hover {
-    background: #ff1493;
   }
 </style>
 </head>
@@ -96,67 +89,89 @@
   <h1>🥤 Find the Ball 🥤</h1>
   <div id="round">Round 1 of 5</div>
 
+  <div id="freeBall">⚪</div>
+
   <div id="cups">
-    <div class="cup" data-index="0"><div class="ball">⚪</div></div>
-    <div class="cup" data-index="1"><div class="ball">⚪</div></div>
-    <div class="cup" data-index="2"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="0" style="left:0px"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="1" style="left:135px"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="2" style="left:270px"><div class="ball">⚪</div></div>
   </div>
 
   <div id="message">Watch closely 👀</div>
 
   <div id="reward">
-    <p id="rewardText"></p>
-    <button onclick="nextRound()">Next Round 💖</button>
+    <div id="rewardText"></div>
+    <button onclick="nextRound()">Next 💖</button>
   </div>
 </div>
 
 <script>
-const cups = document.querySelectorAll(".cup");
+const cups = [...document.querySelectorAll(".cup")];
 const balls = document.querySelectorAll(".ball");
+const freeBall = document.getElementById("freeBall");
 const message = document.getElementById("message");
 const rewardBox = document.getElementById("reward");
 const rewardText = document.getElementById("rewardText");
 const roundText = document.getElementById("round");
 
 let round = 1;
-let winningCup = 0;
+let winningCupId = 0;
 let canPick = false;
 
-// Rewards per round
+/* 🎵 Cute sounds */
+const sounds = {
+  reveal: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-pop-2327.mp3"),
+  shuffle: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3"),
+  win: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"),
+  lose: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-buzz-950.mp3")
+};
+
 const rewards = [
-  "💌 A tiny secret message",
-  "💖 A cute compliment",
-  "😳 Something spicy?",
-  "💍 Almost there...",
-  "🎬 FINAL REWARD: VIDEO CLIP"
+  "💌 Sweet message",
+  "💖 Cute compliment",
+  "😳 Getting spicy",
+  "💍 Almost there",
+  "🎬 FINAL REWARD"
 ];
 
-// Start round
 function startRound() {
-  rewardBox.style.display = "none";
-  balls.forEach(ball => ball.style.display = "none");
-  message.textContent = "Shuffling...";
   canPick = false;
+  rewardBox.style.display = "none";
+  balls.forEach(b => b.style.display = "none");
 
-  winningCup = Math.floor(Math.random() * 3);
+  message.textContent = "Look where the ball goes 👀";
+  freeBall.style.display = "block";
+  sounds.reveal.play();
+
+  winningCupId = Math.floor(Math.random() * 3);
 
   setTimeout(() => {
-    shuffleCups();
-  }, 800);
+    freeBall.style.display = "none";
+    cups[winningCupId].querySelector(".ball").style.display = "block";
+
+    setTimeout(() => {
+      balls.forEach(b => b.style.display = "none");
+      shuffleCups();
+    }, 700);
+  }, 1200);
 }
 
-// Shuffle animation (speed increases)
 function shuffleCups() {
-  let moves = 5 + round * 2;
-  let speed = Math.max(150, 500 - round * 70);
+  message.textContent = "Shuffling...";
+  sounds.shuffle.play();
+
+  let swaps = 3 + round * 2;
+  let speed = Math.max(200, 600 - round * 80);
 
   let interval = setInterval(() => {
-    const order = [0, 1, 2].sort(() => Math.random() - 0.5);
-    document.getElementById("cups").style.flexDirection =
-      Math.random() > 0.5 ? "row" : "row-reverse";
-    moves--;
+    const i = Math.floor(Math.random() * 3);
+    let j = Math.floor(Math.random() * 3);
+    while (i === j) j = Math.floor(Math.random() * 3);
 
-    if (moves <= 0) {
+    swapCups(i, j);
+    swaps--;
+
+    if (swaps <= 0) {
       clearInterval(interval);
       message.textContent = "Pick a cup 🥤";
       canPick = true;
@@ -164,40 +179,56 @@ function shuffleCups() {
   }, speed);
 }
 
-// Cup click
+function swapCups(i, j) {
+  const leftI = cups[i].style.left;
+  cups[i].style.left = cups[j].style.left;
+  cups[j].style.left = leftI;
+
+  if (winningCupId == cups[i].dataset.id) {
+    winningCupId = cups[j].dataset.id;
+  } else if (winningCupId == cups[j].dataset.id) {
+    winningCupId = cups[i].dataset.id;
+  }
+}
+
 cups.forEach(cup => {
   cup.addEventListener("click", () => {
     if (!canPick) return;
 
-    const index = Number(cup.dataset.index);
-    balls[winningCup].style.display = "block";
+    const id = cup.dataset.id;
+    const winningCup = cups.find(c => c.dataset.id == winningCupId);
+    winningCup.querySelector(".ball").style.display = "block";
 
-    if (index === winningCup) {
-      message.textContent = "🎉 You found it!";
+    if (id == winningCupId) {
+      sounds.win.play();
+      message.textContent = "🎉 Correct!";
       rewardText.textContent = rewards[round - 1];
       rewardBox.style.display = "block";
       canPick = false;
     } else {
-      message.textContent = "❌ Nope! Try again 😈";
+      sounds.lose.play();
+      message.textContent = "❌ Wrong! Try again 👀";
+      canPick = false;
+
+      setTimeout(() => {
+        balls.forEach(b => b.style.display = "none");
+        startRound(); // SAME ROUND restart
+      }, 1200);
     }
   });
 });
 
-// Next round
 function nextRound() {
   round++;
-
   if (round > 5) {
     rewardText.textContent = "💖 GAME COMPLETE 💖";
     rewardBox.style.display = "block";
     return;
   }
-
   roundText.textContent = `Round ${round} of 5`;
   startRound();
 }
 
-// Init
 startRound();
 </script>
 
