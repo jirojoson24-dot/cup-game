@@ -97,7 +97,6 @@ const sounds = {
 const teaseLines = ["😈 Nope. Try again.","👀 You blinked!","😂 That was bold.","💀 The ball disagrees."];
 const rewards = ["💌 A sweet secret","💖 A cute compliment","😳 Getting interesting","💍 Almost there…"];
 
-// Assign cups to random positions
 function randomizeCupPositions() {
   const positions = [0, 135, 270];
   for (let cup of cups) {
@@ -152,7 +151,6 @@ function shuffleCups() {
   }, speed);
 }
 
-// Animate swap smoothly
 function animateSwap(i, j) {
   const cupA = cups[i];
   const cupB = cups[j];
@@ -160,7 +158,6 @@ function animateSwap(i, j) {
   const posB = cupB.offsetLeft;
   cupA.style.left = posB + "px";
   cupB.style.left = posA + "px";
-  // swap ball tracking
   const tempBall = cupHasBall[i];
   cupHasBall[i] = cupHasBall[j];
   cupHasBall[j] = tempBall;
@@ -193,15 +190,16 @@ function showReward() {
   } else {
     // Remove cups
     cups.forEach(c => c.style.display = "none");
+    freeBall.style.display = "none";
 
+    // Show Valentine message and video
     rewardBox.innerHTML = `
       <div id="countdownBox">Get ready… 💓</div>
       <div id="videoWrapper">
         <video id="finalVideo" src="final.mp4" playsinline muted></video>
         <div id="valentineText">
           Will you be my Valentine? <br>
-          Renz Lloyd Mapagmahal, <br>
-          Pikunin pag hinawakan bayag.
+          Renz Lloyd Peji Consumo the Sabungero ng mga Sisiw
         </div>
       </div>
     `;
@@ -212,7 +210,7 @@ function showReward() {
 function startCountdown() {
   let count = 3;
   const box = document.getElementById("countdownBox");
-  const video = document.getElementById("videoWrapper");
+  const videoWrapper = document.getElementById("videoWrapper");
   const vid = document.getElementById("finalVideo");
   box.textContent = count;
 
@@ -224,9 +222,7 @@ function startCountdown() {
       box.textContent = "💖";
       setTimeout(() => {
         box.style.display = "none";
-        video.style.display = "block";
-
-        // Play with sound after user gesture
+        videoWrapper.style.display = "block";
         if (userInteracted) vid.muted = false;
         vid.play();
       }, 700);
