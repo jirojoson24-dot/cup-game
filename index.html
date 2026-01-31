@@ -62,11 +62,11 @@ h1 { color: #ff1493; }
   margin-top: 10px;
 }
 
-/* FINAL VIDEO SCREEN */
+/* FINAL VIDEO OVERLAY */
 #finalScreen {
   position: fixed;
   inset: 0;
-  background: #ffe6f0;
+  background: transparent; /* 🔑 KEEP PINK BG */
   display: none;
   justify-content: center;
   align-items: center;
@@ -206,7 +206,6 @@ cups.forEach((cup, index) => {
       setTimeout(() => {
         round++;
         if (round > 5) {
-          game.remove();
           finalScreen.style.display = "flex";
           finalVideo.muted = false;
           finalVideo.play();
