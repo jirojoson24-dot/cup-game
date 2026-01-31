@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🥤 Find the Ball</title>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: #ffe6f0;
+    font-family: "Comic Sans MS", cursive;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #game {
+    width: 360px;
+    text-align: center;
+  }
+
+  h1 { color: #ff1493; }
+  #round { color: #c2185b; }
+
+  #cups {
+    position: relative;
+    height: 180px;
+    margin-top: 20px;
+  }
+
+  .cup {
+    width: 90px;
+    height: 120px;
+    background: #ff69b4;
+    border-radius: 30px 30px 8px 8px; /* upside-down */
+    position: absolute;
+    bottom: 0;
+    cursor: pointer;
+    transition: left 0.35s ease, transform 0.25s ease;
+  }
+
+  .cup::after {
+    content: "";
+    position: absolute;
+    bottom: 6px;
+    left: 10px;
+    width: 70px;
+    height: 8px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 4px;
+  }
+
+  .cup.lift {
+    transform: translateY(-25px);
+  }
+
+  .ball {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    display: none;
+  }
+
+  #freeBall {
+    font-size: 32px;
+    display: none;
+    margin-top: 5px;
+  }
+
+  #message {
+    min-height: 45px;
+    margin-top: 10px;
+    color: #ad1457;
+  }
+
+  #reward {
+    display: none;
+    background: #fff0f5;
+    padding: 15px;
+    border-radius: 15px;
+    margin-top: 10px;
+  }
+
+  #countdownBox {
+    font-size: 28px;
+    color: #ff1493;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  #videoWrapper {
+    display: none;
+    cursor: pointer;
+  }
+
+  video {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+
+  button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    background: #ff69b4;
+    color: white;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="game">
+  <h1>🥤 Find the Ball 🥤</h1>
+  <div id="round">Round 1 of 5</div>
+
+  <div id="freeBall">⚪</div>
+
+  <div id="cups">
+    <div class="cup" data-id="0" style="left:0px"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="1" style="left:135px"><div class="ball">⚪</div></div>
+    <div class="cup" data-id="2" style="left:270px"><div class="ball">⚪</div></div>
+  </div>
+
+  <div id="message">Watch closely 👀</div>
+
+  <div id="reward"></div>
+</div>
+
+<script>
+const cups = [...document.querySelectorAll(".cup")];
+const balls = document.querySelectorAll(".ball");
+const freeBall = document.getElementById("freeBall");
+const message = document.getElementById("message");
+const rewardBox = document.getElementById("reward");
+const roundText = document.getElementById("round");
+
+let round = 1;
+let winningCupId = 0;
+let canPick = false;
+
+const sounds = {
+  reveal: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-pop-2327.mp3"),
+  shuffle: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"),
+  win: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"),
+  lose: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-buzz-950.mp3")
+};
+
+const teaseLines = [
+  "😈 Nope. Try again.",
+  "👀 You blinked!",
+  "😂 That was bold.",
+  "💀 The ball disagrees."
+];
+
+const rewards = [
+  "💌 A sweet secret",
+  "💖 A cute compliment",
+  "😳 Getting interesting",
+  "💍 Almost there…"
+];
+
+function startRound() {
+  canPick = false;
+  rewardBox.style.display = "none";
+  balls.forEach(b => b.style.display = "none");
+  cups.forEach(c => c.classList.remove("lift"));
+
+  message.textContent = "Watch where the ball goes 👀";
+  freeBall.style.display = "block";
+  sounds.reveal.play();
+
+  winningCupId = Math.floor(Math.random() * 3);
+
+  setTimeout(() => {
+    freeBall.style.display = "none";
+    cups[winningCupId].querySelector(".ball").style.display = "block";
+
+    setTimeout(() => {
+      balls.forEach(b => b.style.display = "none");
+      shuffleCups();
+    }, 700);
+  }, 1200);
+}
+
+function shuffleCups() {
+  message.textContent = "Shuffling...";
+  sounds.shuffle.play();
+
+  let swaps = 3 + round * 2;
+  let speed = Math.max(180, 550 - round * 70);
+
+  let interval = setInterval(() => {
+    const i = Math.floor(Math.random() * 3);
+    let j = Math.floor(Math.random() * 3);
+    while (i === j) j = Math.floor(Math.random() * 3);
+
+    swap(i, j);
+    swaps--;
+
+    if (swaps <= 0) {
+      clearInterval(interval);
+      message.textContent = "Pick a cup 🥤";
+      canPick = true;
+    }
+  }, speed);
+}
+
+function swap(i, j) {
+  const temp = cups[i].style.left;
+  cups[i].style.left = cups[j].style.left;
+  cups[j].style.left = temp;
+
+  if (winningCupId == cups[i].dataset.id) winningCupId = cups[j].dataset.id;
+  else if (winningCupId == cups[j].dataset.id) winningCupId = cups[i].dataset.id;
+}
+
+cups.forEach(cup => {
+  cup.addEventListener("click", () => {
+    if (!canPick) return;
+
+    canPick = false;
+    cup.classList.add("lift");
+
+    const winningCup = cups.find(c => c.dataset.id == winningCupId);
+    winningCup.querySelector(".ball").style.display = "block";
+
+    if (cup.dataset.id == winningCupId) {
+      sounds.win.play();
+      message.textContent = "🎉 Correct!";
+      showReward();
+    } else {
+      sounds.lose.play();
+      message.textContent = teaseLines[Math.floor(Math.random() * teaseLines.length)];
+
+      setTimeout(() => {
+        balls.forEach(b => b.style.display = "none");
+        startRound();
+      }, 1400);
+    }
+  });
+});
+
+function showReward() {
+  rewardBox.style.display = "block";
+
+  if (round < 5) {
+    rewardBox.innerHTML = `
+      <p>${rewards[round - 1]}</p>
+      <button onclick="nextRound()">Next 💖</button>
+    `;
+  } else {
+    rewardBox.innerHTML = `
+      <div id="countdownBox">Get ready… 💓</div>
+      <div id="videoWrapper" onclick="playVideo()">
+        <p>💖 Tap to open your surprise 💖</p>
+        <video id="finalVideo" src="final.mp4" playsinline></video>
+      </div>
+    `;
+    startCountdown();
+  }
+}
+
+function startCountdown() {
+  let count = 3;
+  const box = document.getElementById("countdownBox");
+  const video = document.getElementById("videoWrapper");
+
+  box.textContent = count;
+
+  const timer = setInterval(() => {
+    count--;
+    if (count > 0) {
+      box.textContent = count;
+    } else {
+      clearInterval(timer);
+      box.textContent = "💖";
+      setTimeout(() => {
+        box.style.display = "none";
+        video.style.display = "block";
+      }, 700);
+    }
+  }, 1000);
+}
+
+function playVideo() {
+  const vid = document.getElementById("finalVideo");
+  vid.play();
+}
+
+function nextRound() {
+  round++;
+  roundText.textContent = `Round ${round} of 5`;
+  startRound();
+}
+
+startRound();
+</script>
+
+</body>
+</html>
