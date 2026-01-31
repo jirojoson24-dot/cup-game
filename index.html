@@ -84,13 +84,13 @@ video {
   <div id="freeBall">⚪</div>
 
   <div id="stage">
-    <div class="cup" data-index="0" style="transform:translateX(0px)">
+    <div class="cup" style="transform:translateX(0px)">
       <div class="ball">⚪</div>
     </div>
-    <div class="cup" data-index="1" style="transform:translateX(135px)">
+    <div class="cup" style="transform:translateX(135px)">
       <div class="ball">⚪</div>
     </div>
-    <div class="cup" data-index="2" style="transform:translateX(270px)">
+    <div class="cup" style="transform:translateX(270px)">
       <div class="ball">⚪</div>
     </div>
   </div>
@@ -103,7 +103,11 @@ video {
       Renz Lloyd Peji Consumo,<br>
       tirador ng kwekwek
     </p>
-    <video id="finalVideo" autoplay controls>
+    <video id="finalVideo"
+      autoplay
+      muted
+      playsinline
+      controls>
       <source src="final.mp4" type="video/mp4">
     </video>
   </div>
@@ -123,21 +127,12 @@ let round = 1;
 let winningIndex = 0;
 let canPick = false;
 
-const sounds = {
-  reveal: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-pop-2327.mp3"),
-  shuffle: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"),
-  win: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"),
-  lose: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-buzz-950.mp3")
-};
-
 function startRound() {
   canPick = false;
   balls.forEach(b => b.style.display = "none");
   message.textContent = "Look at the ball 👀";
 
   freeBall.style.display = "block";
-  sounds.reveal.play();
-
   winningIndex = Math.floor(Math.random() * 3);
 
   setTimeout(() => {
@@ -153,7 +148,6 @@ function startRound() {
 
 function shuffle() {
   message.textContent = "Shuffling...";
-  sounds.shuffle.play();
 
   let moves = 3 + round * 2;
   let speed = Math.max(200, 600 - round * 80);
@@ -186,7 +180,6 @@ cups.forEach((cup, index) => {
     cups[winningIndex].querySelector(".ball").style.display = "block";
 
     if (index === winningIndex) {
-      sounds.win.play();
       message.textContent = "Correct!";
       canPick = false;
 
@@ -196,13 +189,15 @@ cups.forEach((cup, index) => {
           game.innerHTML = "";
           document.body.appendChild(finalScreen);
           finalScreen.style.display = "flex";
+
+          const video = document.getElementById("finalVideo");
+          video.play(); // force autoplay
         } else {
           roundText.textContent = `Round ${round} of 5`;
           startRound();
         }
       }, 1000);
     } else {
-      sounds.lose.play();
       message.textContent = "Wrong 😈 Try again!";
       canPick = false;
       setTimeout(startRound, 1200);
