@@ -47,14 +47,10 @@ h1 { color: #ff1493; }
 #videoWrapper { display: none; position: relative; }
 video { width: 100%; border-radius: 12px; margin-top: 10px; }
 #valentineText {
-  position: absolute;
-  top: 30%;
-  width: 100%;
-  text-align: center;
-  color: #ff1493;
+  margin-top: 15px;
   font-size: 22px;
+  color: #ff1493;
   font-weight: bold;
-  text-shadow: 1px 1px 3px #fff;
 }
 button { margin-top: 10px; padding: 8px 16px; border-radius: 20px; border: none; background: #ff69b4; color: white; cursor: pointer; }
 </style>
@@ -114,6 +110,8 @@ function startRound() {
   message.textContent = "Watch where the ball goes 👀";
   freeBall.style.display = "block";
 
+  // Reset cup positions in case some leftover from final round
+  cups.forEach(c => c.style.display = "block");
   randomizeCupPositions();
 
   sounds.reveal.play();
@@ -188,19 +186,19 @@ function showReward() {
   if (round < 5) {
     rewardBox.innerHTML = `<p>${rewards[round-1]}</p><button onclick="nextRound()">Next 💖</button>`;
   } else {
-    // Remove cups
-    cups.forEach(c => c.style.display = "none");
+    // Remove cups for final round
+    cups.forEach(c => c.remove());
     freeBall.style.display = "none";
 
-    // Show Valentine message and video
+    // Show Valentine text above the video
     rewardBox.innerHTML = `
+      <div id="valentineText">
+        Will you be my Valentine? <br>
+        Renz Lloyd Peji Consumo the Sabungero ng mga Sisiw
+      </div>
       <div id="countdownBox">Get ready… 💓</div>
       <div id="videoWrapper">
         <video id="finalVideo" src="final.mp4" playsinline muted></video>
-        <div id="valentineText">
-          Will you be my Valentine? <br>
-          Renz Lloyd Peji Consumo the Sabungero ng mga Sisiw
-        </div>
       </div>
     `;
     startCountdown();
